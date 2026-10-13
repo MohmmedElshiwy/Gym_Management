@@ -15,6 +15,59 @@ namespace GymManagementPL.Controllers
         private readonly UserManager<ApplicationUser> _userManager = userManager;
         private readonly ILogger<AccountController> _logger = logger;
 
+
+
+
+        #region Register
+
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = new ApplicationUser
+            {
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                UserName = model.Email,
+                Email = model.Email
+            };
+
+            var result = await _userManager.CreateAsync(
+                user,
+                model.Password
+            );
+
+            if (result.Succeeded)
+            {
+                _logger.LogInformation(
+                    "New user registered with ID {UserId}.",
+                    user.Id
+                );
+
+                return RedirectToAction(nameof(Login));
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return View(model);
+        }
+
+        #endregion
+
         #region Login
         public IActionResult Login()
         {
